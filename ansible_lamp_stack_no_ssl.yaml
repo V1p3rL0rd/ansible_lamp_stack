@@ -1,0 +1,81 @@
+- name: Deploy LAMP Stack
+  hosts: web_servers
+  become: yes
+  remote_user: tuxadm
+  vars:
+    ansible_ssh_pass: Pass_12345
+    ansible_become_password: Pass_12345
+    domain_name: example.com
+    mysql_root_password: dbroot_12345
+
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+
+    - name: Install Apache, MySQL, and PHP
+      apt:
+        name: 
+          - apache2
+          - mysql-server
+          - php
+          - php-mysql
+          - libapache2-mod-php
+          - php-cli
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+        state: present
+
+    - name: Enable Apache modules
+      apache2_module:
+        name: rewrite
+        state: present
+
+    - name: Configure Apache
+      copy:
+        dest: /etc/apache2/sites-available/{{ domain_name }}.conf
+        content: |
+          <VirtualHost *:80>
+              ServerName {{ domain_name }}
+              DocumentRoot /var/www/html
+
+              <Directory /var/www/html>
+                  Options Indexes FollowSymLinks
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+          </VirtualHost>
+
+    - name: Enable the new Apache configuration
+      command: a2ensite {{ domain_name }}.conf
+
+    - name: Disable the default Apache configuration
+      command: a2dissite 000-default.conf
+
+    - name: Restart Apache to apply changes
+      systemd:
+        name: apache2
+        state: restarted
+
+    - name: Ensure MySQL root password is set
+      shell: "mysql -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysql_root_password }}';\""
+
+    - name: Remove anonymous MySQL users
+      shell: "mysql -u root -p{{ mysql_root_password }} -e \"DELETE FROM mysql.user WHERE User='';\""
+
+    - name: Remove test database
+      shell: "mysql -u root -p{{ mysql_root_password }} -e \"DROP DATABASE IF EXISTS test;\""
+
+    - name: Remove test database privileges
+      shell: "mysql -u root -p{{ mysql_root_password }} -e \"DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';\""
+
+    - name: Reload privilege tables
+      shell: "mysql -u root -p{{ mysql_root_password }} -e \"FLUSH PRIVILEGES;\""
+
+    - name: Install phpMyAdmin (optional)
+      apt:
+        name: phpmyadmin
+        state: present
