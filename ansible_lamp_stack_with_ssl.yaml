@@ -3,10 +3,10 @@
   become: yes
   remote_user: tuxadm
   vars:
-    ansible_ssh_pass: Pass_12345
-    ansible_become_password: Pass_12345
-    domain_name: example.com
-    mysql_root_password: dbroot_12345
+    ansible_ssh_pass: Pass_12345 # Here insert SSH user's password
+    ansible_become_password: Pass_12345 # Here insert sudoer user's password
+    domain_name: example.com # Here insert your website's domain name 
+    mysql_root_password: dbroot_12345 #Here insert MySQL admin password
     ssl_cert: /etc/ssl/certs/apache-selfsigned.crt
     ssl_key: /etc/ssl/private/apache-selfsigned.key
 
