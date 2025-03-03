@@ -1,6 +1,7 @@
 # Ansible LAMP stack deployment
-This simple Ansible playbook automaticaly install and confiure LAMP stack 
-The script is executed in several stages:
+This is a very simple Ansible playbook will help you to install and confiure LAMP stack 
+
+The playbook contains a several tasks:
 
 1) Update apt package index
 2) Install Apache, MySQL, and PHP
